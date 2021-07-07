@@ -1,0 +1,611 @@
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>Go TMP</title>
+
+  <link href="./css/bootstrap.min.css" rel="stylesheet" >
+  <link href="./css/style.css" rel="stylesheet">
+
+  <script src="./js/bootstrap.bundle.min.js"></script>
+  <script src="./js/jquery-3.6.0.slim.min.js"></script>
+  <script src="./js/main.js"></script>
+   
+  <style>
+  html { position: relative; height: 100%; }
+  body { margin-bottom: 60px; } .footer { position: absolute; bottom: 0; width: 100%; height: 60px; line-height: 60px; background-color: #f5f5f5; } body > .container { padding: 60px 15px 10px; } .footer > .container { padding-right: 15px; padding-left: 15px; } code { font-size: 80%; } 
+
+</style>
+</head>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark" style="padding-bottom: 10px;">
+      <a class="navbar-brand" href="">Go TMP</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </nav>
+  </header>
+  <div class="container-fluid m-0 p-0">
+    <div class="row" style="margin-top:70px;margin-left: 10px;margin-right: 10px;">
+     <div class="col-sm-4 col-md-4 m-0 p-0">
+      <div id="lseft" style="margin-right: 10px;">
+          <div class="form-group">
+              <input type="text" class="form-control form-control-xs" placeholder="Dari, Lokasi Anda" id="start" />
+          </div>
+          <div class="form-group">
+              <input type="text" class="form-control form-control-xs" placeholder="Ke, Tujuan Anda" id="finish" />
+          </div>
+          <button type="button" onclick="cari()" class="btn btn-primary btn-sm">Cari Rute</button>
+          <div class="d-md-flex">
+          <div id="panel" style="padding-top: 10px;" class="panel-body scrollable-panel" ></div>
+        </div>
+      </div>      
+    </div>
+    <div class="col-sm-8 col-md-8 m-0 p-0">
+      <div id="map"></div>  
+    </div>
+  </div>
+
+
+
+</div>
+<footer class="footer">
+  <div class="container">
+    <span class="text-muted"></span>
+  </div>
+</footer>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+  var directionsService;
+  var directionsDisplay;
+  var asal;
+  var tujuan;
+  var lat_asal;
+  var lon_asal;
+  var lat_tujuan;
+  var lon_tujuan;
+  var markersArray = [];
+  var image1;
+  var image2;
+  var imageA;
+  var imageB;
+  var map;
+  var jam;
+  var jm;
+  var minute;
+  var jarak=0;
+  var cari_ini=0;
+  var txtKet="";
+  var imgKet="";
+  var detailshow=false;
+  
+
+  function initMap() {
+    const centers = { lat: 0.533505, lng: 101.447403};
+     directionsService = new google.maps.DirectionsService;
+     directionsDisplay = new google.maps.DirectionsRenderer;
+     directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true});
+     const transitLayer = new google.maps.TransitLayer();
+    
+     map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 15,
+      center: centers,
+    });
+    map.setOptions({ styles: styles["hide"] });
+    directionsDisplay.setMap(map);
+
+      transitLayer.setMap(map);
+    const defaultBounds = {
+      north: centers.lat + 0.5,
+      south: centers.lat - 0.5,
+      east: centers.lng + 0.5,
+      west: centers.lng - 0.5,
+    };
+
+    const options = {
+      bounds: defaultBounds,
+      componentRestrictions: { country: "id" },
+      fields: ["address_components", "geometry", "icon", "name"],
+      origin: centers,
+      strictBounds: true,
+      types: ["establishment"],
+    };
+
+    
+    
+   asal=new google.maps.places.Autocomplete(document.getElementById("start"),options);
+   tujuan=new google.maps.places.Autocomplete(document.getElementById("finish"),options);
+
+   image1 = {
+     url: 'https://icon-library.net/images/google-maps-bus-icon/google-maps-bus-icon-8.jpg',
+     size: new google.maps.Size(48, 48),
+     origin: new google.maps.Point(0, 0),
+     anchor: new google.maps.Point(17, 34),
+     scaledSize: new google.maps.Size(32, 32)
+   };
+
+
+
+   image2 = {
+     url: 'https://icon-library.net/images/google-maps-bus-icon/google-maps-bus-icon-2.jpg',
+     size: new google.maps.Size(48, 48),
+     origin: new google.maps.Point(0, 0),
+     anchor: new google.maps.Point(17, 34),
+     scaledSize: new google.maps.Size(32, 32)
+   };
+
+   imageA = {
+     url: 'img/A.png',
+     size: new google.maps.Size(48, 48),
+     origin: new google.maps.Point(0, 0),
+     anchor: new google.maps.Point(17, 34),
+     scaledSize: new google.maps.Size(32, 32)
+   };
+
+   imageB = {
+     url: 'img/B.png',
+     size: new google.maps.Size(48, 48),
+     origin: new google.maps.Point(0, 0),
+     anchor: new google.maps.Point(17, 34),
+     scaledSize: new google.maps.Size(32, 32)
+   };
+
+   imageE = {
+     url: 'img/enter.png',
+     size: new google.maps.Size(48, 48),
+     origin: new google.maps.Point(0, 0),
+     anchor: new google.maps.Point(17, 34),
+     scaledSize: new google.maps.Size(16, 16)
+   };
+
+   imageX = {
+     url: 'img/exit.png',
+     size: new google.maps.Size(48, 48),
+     origin: new google.maps.Point(0, 0),
+     anchor: new google.maps.Point(17, 34),
+     scaledSize: new google.maps.Size(16, 16)
+   };   
+  }
+ 
+   
+
+  function calcroute(start,end,wayptss,ttlstart,ttlend){
+    directionsDisplay.setMap(map);
+
+    createMarker(start,ttlstart,imageA);
+
+    var request = {
+        origin: start,
+        destination: end,
+        waypoints: wayptss,
+        optimizeWaypoints: true,
+        travelMode: google.maps.DirectionsTravelMode.DRIVING
+    };
+
+    directionsService.route(request, function (response, status) {
+        if (status == google.maps.DirectionsStatus.OK) {
+            directionsDisplay.setDirections(response);
+            var route = response.routes[0];
+                   
+
+        }
+    });
+
+    createMarker(end,ttlend,imageB);
+  }
+
+  function createMarker(latlng,ttl,icn) {
+      
+      var marker = new google.maps.Marker({
+          position: latlng,
+          title:ttl,
+          map: map,
+          icon: icn
+      });
+      markersArray.push(marker);
+  }
+
+  function setMapOnAll(map) {
+          for (let i = 0; i < markersArray.length; i++) {
+            markersArray[i].setMap(map);
+          }
+  }
+
+  function clearMarkers() {
+          setMapOnAll(null);
+          markersArray = [];
+  }
+
+  function getDistance(ori,dest){
+    var service = new google.maps.DistanceMatrixService();
+        service.getDistanceMatrix({
+            origins: [ori],
+            destinations: [dest],
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC,
+            avoidHighways: false,
+            avoidTolls: false
+        }, function (response, status) {
+            if (status == google.maps.DistanceMatrixStatus.OK && response.rows[0].elements[0].status != "ZERO_RESULTS") {
+                var distance = response.rows[0].elements[0].distance.text;
+                var duration = Math.ceil(response.rows[0].elements[0].duration.value/60);
+
+                var now=new Date();
+                var th=now.getYear();
+                var bl=now.getMonth();
+                var hh=now.getDay();
+
+
+                var currentDate = new Date(th,bl,hh,jam,mnt,0);
+                var futureDate = new Date(currentDate.getTime() + duration*60000);
+                var time = ('0'+futureDate.getHours()).substr(-2) + ":" + futureDate.getMinutes();
+                var dvDistance = document.getElementById("perjalanan");
+                dvDistance.innerHTML = "";
+                dvDistance.innerHTML += "Jarak: " + distance + "<br />";
+                dvDistance.innerHTML += "Waktu Tempuh: " + duration+" menit <br>";
+                dvDistance.innerHTML += "Perkiraan Tiba: " + time;
+
+     
+            } else {
+                alert("Unable to find the distance via road.");
+            }
+        });
+  }
+    
+  
+  function cari(){
+    detailshow=false;
+    directionsDisplay.setMap(null);
+    clearMarkers();
+    travel_time="";
+    txt= document.getElementById('panel');
+    txt.innerHTML="";
+    txtKet="";
+    imgKet="";
+
+    var place_asal = asal.getPlace();
+    var place_tujuan = tujuan.getPlace();
+    lat_asal=place_asal.geometry.location.lat();
+    lon_asal=place_asal.geometry.location.lng();
+    lat_tujuan=place_tujuan.geometry.location.lat();
+    lon_tujuan=place_tujuan.geometry.location.lng();
+    
+    var halte_awal=findnearest(lat_asal,lon_asal);
+    var jarak1=jarak;
+    var halte_tujuan=findnearest(lat_tujuan,lon_tujuan);
+    var jarak2=jarak;
+
+    position1= new google.maps.LatLng(lat_asal,lon_asal);
+    position2= new google.maps.LatLng(lat_tujuan,lon_tujuan);
+
+    
+    if(halte[halte_awal].TYPE==0) 
+      txtAwal="<img class='halte-biasa'>"+halte[halte_awal].HALTE+
+               " ( "+halte[halte_awal].KORIDOR1+" "+
+               halte[halte_awal].KORIDOR2+" "+
+               halte[halte_awal].KORIDOR3+")<BR>";
+                
+    else 
+      txtAwal="<img class='halte-transit'>"+halte[halte_awal].HALTE+
+              " ( "+halte[halte_awal].KORIDOR1+" "+
+              halte[halte_awal].KORIDOR2+" "+
+              halte[halte_awal].KORIDOR3+")<BR>";
+
+    if(halte[halte_tujuan].TYPE==0) 
+      txtTujuan="<img class='halte-biasa'>"+halte[halte_tujuan].HALTE+
+                 " ( "+halte[halte_tujuan].KORIDOR1+" "+
+                 halte[halte_tujuan].KORIDOR2+" "+
+                 halte[halte_tujuan].KORIDOR3+")<BR>"; 
+    else 
+      txtTujuan="<img class='halte-transit'>"+halte[halte_tujuan].HALTE+
+                 " ( "+halte[halte_tujuan].KORIDOR1+" "+
+                 halte[halte_tujuan].KORIDOR2+" "+
+                 halte[halte_tujuan].KORIDOR3+")<BR>";
+      
+    var koridor_awal1=halte[halte_awal].KORIDOR1;
+    var koridor_awal2=halte[halte_awal].KORIDOR2;
+    var koridor_awal3=halte[halte_awal].KORIDOR3;
+    var no_awal=halte[halte_awal].NO;
+    var koridor_tujuan1=halte[halte_tujuan].KORIDOR1;
+    var koridor_tujuan2=halte[halte_tujuan].KORIDOR2;
+    var koridor_tujuan3=halte[halte_tujuan].KORIDOR3;
+    var today = new Date();
+    //var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+     //var currentHours = ('0'+currentTime.getHours()).substr(-2);
+               
+    jam=parseInt(today.getHours());
+    minute=parseInt(today.getMinutes());
+    mnt="00"; 
+    if( minute>=0 && minute<=15) mnt="15";
+    if(minute>15 && minute<=30) mnt="30";
+    if(minute>30 && minute<45) mnt="45";
+    if(minute>45) {
+        mnt="00";
+        jam=jam+1;
+    }    
+
+    if(halte[halte_awal].TYPE==0)  img1=image1;else img1=image2;
+    if(halte[halte_tujuan].TYPE==0)  img2=image1;else img2=image2;
+    
+    var waypts = [];
+    
+
+    var positionA= new google.maps.LatLng(halte[halte_awal].LATITUDE, halte[halte_awal].LONGITUDE);
+    
+    waypts.push({
+        location: positionA,
+        stopover: true
+    });
+    createMarker(positionA,halte[halte_awal].HALTE,imageE);
+
+    var positionB= new google.maps.LatLng(halte[halte_tujuan].LATITUDE, halte[halte_tujuan].LONGITUDE);
+ 
+      
+    
+    if (jam<10)    
+         jm='0'+jam+':'+mnt; jm=jam+':'+mnt;
+
+    imgKet+="<img src='img/A.png' width='24' height='24'>";
+    imgKet+="<img src='img/walk.png'>";
+    if(koridor_awal1==koridor_tujuan1){
+            txtAwal+="<div class='nama-bus'>Bus "+koridor_awal1+" Berangkat "+jm+"</div>";
+            txtKet+=txtAwal;
+            txtKet+="<div class='vl-1'></div><BR>";
+            txtKet+=txtTujuan;  
+
+            imgKet+="<img src='img/"+koridor_awal1+".png'>";
+    }
+    if(koridor_awal1!=koridor_tujuan1){
+          txtAwal+="<div class='nama-bus'>Bus "+koridor_awal1+" Berangkat "+jm+"</div>";  
+          txtKet+=txtAwal;
+          txtKet+="<div class='vl-1'></div><BR>";
+          imgKet+="<img src='img/"+koridor_awal1+".png'>";
+
+          var ke=findhaltetransit(koridor_awal1,koridor_tujuan1);
+           if(ke>=0){
+              txtKet+="<img class='halte-transit'>"+halte[ke].HALTE+
+                             " ( "+halte[ke].KORIDOR1+" "+
+                             halte[ke].KORIDOR2+" "+
+                             halte[ke].KORIDOR3+")<BR>"+
+                             "<div class='nama-bus'>Bus "+koridor_tujuan1+"</div>";  
+              txtKet+="<div class='vl-2'></div><BR>";    
+              imgKet+="<img src='img/"+koridor_tujuan1+".png'>";
+              stop = new google.maps.LatLng(halte[ke].LATITUDE, halte[ke].LONGITUDE); 
+              waypts.push({
+                  location: stop,
+                  stopover: true
+              });
+              createMarker(stop,halte[ke].HALTE,imageE);
+
+           }else{
+              var ke=findhaltetransitadv(koridor_awal1,no_awal,koridor_awal1);
+              if(ke>=0){
+
+              
+                 txtKet+="<img class='halte-transit'>"+halte[ke].HALTE+
+                              " ( "+halte[ke].KORIDOR1+" "+
+                              halte[ke].KORIDOR2+" "+
+                              halte[ke].KORIDOR3+")<BR>"+
+                              "<div class='nama-bus'>Bus "+halte[ke].KORIDOR1+"</div>";  
+                  txtKet+="<div class='vl-3'></div><BR>";
+                  imgKet+="<img src='img/"+halte[ke].KORIDOR1+".png'>";
+                 stop = new google.maps.LatLng(halte[ke].LATITUDE, halte[ke].LONGITUDE); 
+                 waypts.push({
+                     location: stop,
+                     stopover: true
+                 });
+                 createMarker(stop,halte[ke].HALTE,imageE);
+                
+                 if(cari_ini==12||cari_ini==13){
+                    var ke=findhaltetransit(halte[ke].KORIDOR1,koridor_tujuan1);
+                    if(ke>=0){
+                   
+                        txtKet+="<img class='halte-transit'>"+halte[ke].HALTE+
+                                     " ( "+halte[ke].KORIDOR1+" "+
+                                     halte[ke].KORIDOR2+" "+
+                                     halte[ke].KORIDOR3+")<BR>"+
+                                     "<div class='nama-bus'>Bus "+koridor_tujuan1+"</div>";  
+
+                        txtKet+="<div class='vl-4'></div><BR>";
+                        imgKet+="<img src='img/"+koridor_tujuan1+".png'>";
+
+                        stop = new google.maps.LatLng(halte[ke].LATITUDE, halte[ke].LONGITUDE); 
+                        waypts.push({
+                            location: stop,
+                            stopover: true
+                        });
+                        createMarker(stop,halte[ke].HALTE,imageE);
+                    }else{
+                      var ke=findhaltetransit(halte[ke].KORIDOR2,koridor_tujuan1);
+                      if(ke>=0){
+                   
+                          txtKet+="<img class='halte-transit'>"+halte[ke].HALTE+
+                                       " ( "+halte[ke].KORIDOR1+" "+
+                                       halte[ke].KORIDOR2+" "+
+                                       halte[ke].KORIDOR3+")<BR>";  
+                          txtKet+="<div class='vl-4'></div><BR>";
+
+                          stop = new google.maps.LatLng(halte[ke].LATITUDE, halte[ke].LONGITUDE); 
+                          waypts.push({
+                              location: stop,
+                              stopover: true
+                          });
+                          createMarker(stop,halte[ke].HALTE,imageE);
+
+                      }else{
+                        var ke=findhaltetransit(halte[ke].KORIDOR3,koridor_tujuan1);
+                        if(ke>=0){
+                            txtKet+="<img class='halte-transit'>"+halte[ke].HALTE+
+                                         " ( "+halte[ke].KORIDOR1+" "+
+                                         halte[ke].KORIDOR2+" "+
+                                         halte[ke].KORIDOR3+")<BR>";  
+                            txtKet+="<div class='vl-4'></div><BR>";
+
+                            stop = new google.maps.LatLng(halte[ke].LATITUDE, halte[ke].LONGITUDE); 
+                            waypts.push({
+                                location: stop,
+                                stopover: true
+                            });
+                            createMarker(stop,halte[ke].HALTE,imageE);
+                        } 
+                      }
+                    }
+                 }
+                 if(cari_ini==23){
+                    var ke=findhaltetransit(halte[ke].KORIDOR2,koridor_tujuan1);
+                    if(ke>=0){
+                        txtKet+="<img class='halte-transit'>"+halte[ke].HALTE+
+                                     " ( "+halte[ke].KORIDOR1+" "+
+                                     halte[ke].KORIDOR2+" "+
+                                     halte[ke].KORIDOR3+")<BR>";  
+                        txtKet+="<div class='vl-4'></div><BR>";
+
+                        stop = new google.maps.LatLng(halte[ke].LATITUDE, halte[ke].LONGITUDE); 
+                        waypts.push({
+                            location: stop,
+                            stopover: true
+                        });
+                        createMarker(stop,halte[ke].HALTE,imageE);
+
+                    }else{
+                      var ke=findhaltetransit(halte[ke].KORIDOR3,koridor_tujuan1);
+                      if(ke>=0){
+          
+                          txtKet+="<img class='halte-transit'>"+halte[ke].HALTE+
+                                       " ( "+halte[ke].KORIDOR1+" "+
+                                       halte[ke].KORIDOR2+" "+
+                                       halte[ke].KORIDOR3+")<BR>";  
+                          txtKet+="<div class='vl-4'></div><BR>";
+
+                          stop = new google.maps.LatLng(halte[ke].LATITUDE, halte[ke].LONGITUDE); 
+                          waypts.push({
+                              location: stop,
+                              stopover: true
+                          });
+                          createMarker(stop,halte[ke].HALTE,imageE);
+                      }
+                    }
+                 }
+              }
+           }
+          
+          imgKet+="<img src='img/walk.png'>";
+          imgKet+="<img src='img/B.png' width='24' height='24'>";
+          imgKet+="<br> Berangkat: "+jm+"<p id='perjalanan'></p>"
+          var tmp="<a href='#' onclick='showdetail()'>"+imgKet+"</a>";
+
+          txt.innerHTML+=tmp;
+          txtKet+=txtTujuan;        
+         
+    }
+    //calculateRoute(position1,position2,img1,img2,halte[halte_awal].HALTE,halte[halte_tujuan].HALTE,waypts);
+    waypts.push({
+        location: positionB,
+        stopover: true
+    });
+    createMarker(positionB,halte[halte_tujuan].HALTE,imageX);
+    ttl1=$('#start').val();
+    ttl2=$('#finish').val();
+
+    calcroute(position1,position2,waypts,ttl1,ttl2) ;
+    getDistance(position1,position2); 
+   
+  }
+
+  function showdetail(){
+
+    if(detailshow==false){
+      txt.innerHTML="<BR>";
+      txt.innerHTML+=txtKet;
+      detailshow=true;  
+    }
+    
+
+  }
+
+  function findhaltetransit(key1,key2){
+    var hsl=-1;
+     for(var i=1;i<halte.length;i++){
+
+        if(halte[i].TYPE!=0){
+           if(halte[i].KORIDOR1==key1 || halte[i].KORIDOR2==key1 || halte[i].KORIDOR3==key1){
+              if(halte[i].KORIDOR1==key2 || halte[i].KORIDOR2==key2 || halte[i].KORIDOR3==key2){
+                 hsl=i;
+              }  
+           }  
+        }        
+     }
+     return hsl;
+  }
+
+ 
+
+  function findhaltetransitadv(key1,no,key2){
+    var hsl=-1;
+     for(var i=1;i<halte.length;i++){
+
+        if(halte[i].TYPE!=0 && halte[i].NO!=no){
+          if(halte[i].KORIDOR1==key1 || halte[i].KORIDOR2==key1 || halte[i].KORIDOR3==key1){
+             hsl=i;
+
+             if(halte[i].KORIDOR1==key1) cari_ini=23;
+             if(halte[i].KORIDOR2==key1) cari_ini=13;
+             if(halte[i].KORIDOR3==key1) cari_ini=12;
+
+          }   
+        }        
+     }
+     return hsl;
+  }
+
+
+  
+
+  function degrees_to_radians(degrees)
+  {
+    var pi = Math.PI;
+    return degrees * (pi/180);
+  }
+
+  function distance(lat1,lon1,lat2,lon2){
+      var R = 6371000; // metres
+      var φ1 = degrees_to_radians(lat1);
+      var φ2 = degrees_to_radians(lat2);
+      var Δφ = degrees_to_radians(lat2-lat1);
+      var Δλ = degrees_to_radians(lon2-lon1);
+
+      var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+      var d = R * c;
+      return d;
+  }
+
+  function findnearest(lat1,lon1){
+    jarak=distance(lat1,lon1,halte[0].LATITUDE,halte[0].LONGITUDE);
+    var ke=0;
+    var pos=0;
+    for(var i=1;i<halte.length;i++){
+       if(distance(lat1,lon1,halte[i].LATITUDE,halte[i].LONGITUDE)<jarak){
+           ke=i;
+           jarak=distance(lat1,lon1,halte[i].LATITUDE,halte[i].LONGITUDE);
+       }
+    }
+    return ke;
+  }
+
+
+  $(document).ready(function() {
+                                     
+  }); 
+     
+</script>
+</html>
+ <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAYQqqe9vWTQNrf2pv3C9fdzAbukst7cKk&callback=initMap&libraries=geometry,places,drawing">
+  </script>
+ 

@@ -1,0 +1,77 @@
+#maps {
+  margin-top: 20px;
+  margin-left: 0px;
+  height: 500px;
+  width: auto;
+}
+
+#left {
+  min-height: 80vh;
+  width: auto;
+}
+
+#map {
+  min-height: 80vh;
+  width: 100%;
+}
+
+.form-control-xs {
+  /* height: calc(1em + 0.375rem + 2px) !important; */
+  /* padding: 0.125rem 0.25rem !important; */
+  /* font-size: 0.75rem !important; */
+  line-height: 1.5;
+  border-radius: 0.2rem;
+}
+
+.scrollable-panel {
+  max-height: 400px;
+  overflow-y: scroll;
+  width: 100%;
+  font-size: 12px;
+}
+.vl-1 {
+  margin-left: 100px;
+  top: 10px;
+  border-left: 6px solid blue;
+  height: 40px;
+}
+
+.vl-2 {
+  margin-left: 100px;
+  top: 10px;
+  border-left: 6px solid green;
+  height: 40px;
+}
+
+.vl-3 {
+  margin-left: 100px;
+  top: 10px;
+  border-left: 6px solid yellow;
+  height: 40px;
+}
+
+.vl-4 {
+  margin-left: 100px;
+  top: 10px;
+  border-left: 6px solid red;
+  height: 40px;
+}
+.halte-biasa {
+  margin-left: 50px;
+  width: 24px;
+  height: 24px;
+  content: url("https://icon-library.net/images/google-maps-bus-icon/google-maps-bus-icon-8.jpg");
+  padding-bottom: 0px;
+}
+
+.halte-transit {
+  margin-left: 50px;
+  width: 24px;
+  height: 24px;
+  content: url("https://icon-library.net/images/google-maps-bus-icon/google-maps-bus-icon-2.jpg");
+  padding-bottom: 0px;
+}
+
+.nama-bus {
+  margin-left: 80px;
+}
